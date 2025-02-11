@@ -5,10 +5,51 @@
 # Located at: /usr/local/bin/service-status.py
 
 import os
+import shutil
 import subprocess
 
 # Lista usług do sprawdzenia
 services = ["docker", "ssh", "k3s"]
+
+TOKEN_PATH = "/var/lib/rancher/k3s/server/token"
+BACKUP_PATH = "/home/pi/k3s-token-backup/token.bak"
+
+def create_k3s_token_backup():
+    """Tworzy backup tokena K3s z poprawnymi uprawnieniami"""
+    if os.path.exists(TOKEN_PATH):
+        shutil.copy2(TOKEN_PATH, BACKUP_PATH)
+        os.chmod(BACKUP_PATH, 0o640)  # Prawa dostępu jak w tokenie
+
+def check_k3s_token():
+    """Sprawdza, czy plik tokena K3s istnieje, jest poprawny i czy nie zmienił się względem backupu"""
+    
+    # Sprawdzenie czy plik tokena w ogóle istnieje
+    if not os.path.exists(TOKEN_PATH):
+        return "\033[1;31m✖ K3s token is MISSING! Possible issue after restart\033[0m"
+
+    try:
+        with open(TOKEN_PATH, "r") as file:
+            token_content = file.read().strip()
+        
+        # Sprawdzenie czy token jest pusty lub za krótki
+        if len(token_content) < 20:  # Normalny token ma ok. 50+ znaków
+            return "\033[1;33m⚠ K3s token is EMPTY or CORRUPTED! Check file content.\033[0m"
+
+        # Sprawdzenie, czy mamy kopię zapasową
+        if os.path.exists(BACKUP_PATH):
+            with open(BACKUP_PATH, "r") as backup_file:
+                backup_content = backup_file.read().strip()
+
+            # Porównanie obecnego tokena z backupem
+            if token_content != backup_content:
+                return "\033[1;33m⚠ K3s token has CHANGED! This might be unexpected.\033[0m"
+        
+        # Jeśli wszystko wygląda OK, aktualizujemy backup
+        shutil.copy2(TOKEN_PATH, BACKUP_PATH)
+        return "\033[1;32m✔ K3s token exists and matches backup\033[0m"
+
+    except Exception as e:
+        return f"\033[1;31m✖ Error reading K3s token: {str(e)}\033[0m"
 
 def check_service_status(service_name):
     """Sprawdza status usługi za pomocą systemctl"""
@@ -59,11 +100,12 @@ def generate_status_report():
         report += get_k3s_status()
     
     report += "\n" + get_namespace_report()
+    report += "\n" + check_k3s_token() + "\n"
     report += "\n\n\033[1;36m(This script is located at: /usr/local/bin/service-status.py)\033[0m"
     report += "\n\033[1;36m(Triggered by: /etc/profile.d/service-status.sh)\033[0m"
-
     print(report)
 
 if __name__ == "__main__":
+    create_k3s_token_backup()
     generate_status_report()
 
