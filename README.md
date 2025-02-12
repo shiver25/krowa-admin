@@ -45,19 +45,19 @@ If the script reports **"K3s token is MISSING!"**, but the file actually exists:
    ```bash
    cat /var/lib/rancher/k3s/server/token
    ```
-  If you see Permission denied, try:
+2. **If you see Permission denied, try:**
     ```bash
     newgrp k3s
     ```
-  Verify that /var/lib/rancher/k3s/server/ has the correct permissions:
+3. **Verify that /var/lib/rancher/k3s/server/ has the correct permissions:**
     ```bash
     ls -ld /var/lib/rancher/k3s/server
     ```
-  If the group k3s does not have read access, fix it with:
+4. **If the group k3s does not have read access, fix it with:**
     ```bash
     sudo chmod 750 /var/lib/rancher/k3s/server
     ```
-  If the issue persists, log out and log back in:
+5. **If the issue persists, log out and log back in:**
     ```bash
     logout
     ssh pi@raspberrypi
