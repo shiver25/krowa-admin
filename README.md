@@ -21,6 +21,47 @@ sudo chmod +x /etc/profile.d/service-status.sh
 ✅ Color-coded and readable output
 ✅ Runs automatically on login
 
+## 🔹 K3s Token Backup & Validation
+Krowa Admin automatically checks and backs up the K3s token file to help diagnose issues after a system restart.
+
+### ✅ How does it work?
+1. The script verifies whether the token file `/var/lib/rancher/k3s/server/token` exists and if the `pi` user has access to it.
+2. If the token file exists and is valid, the script compares it to the backup stored in **`/home/pi/k3s-token-backup/`**.
+3. If the token has changed since the last backup, a warning is displayed.
+4. If the token is missing or empty, the user receives a clear alert.
+
+### 📌 Where is the token backup stored?
+The backup file is saved at:
+```bash
+/home/pi/k3s-token-backup/token.bak
+```
+
+This allows the `pi` user to access it without requiring root privileges.
+
+### ⚠ What to do if `Permission Denied` occurs?
+If the script reports **"K3s token is MISSING!"**, but the file actually exists:
+
+1. **Check if the `pi` user has access to the token file:**  
+   ```bash
+   cat /var/lib/rancher/k3s/server/token
+   ```
+2. **If you see Permission denied, try:**
+    ```bash
+    newgrp k3s
+    ```
+3. **Verify that /var/lib/rancher/k3s/server/ has the correct permissions:**
+    ```bash
+    ls -ld /var/lib/rancher/k3s/server
+    ```
+4. **If the group k3s does not have read access, fix it with:**
+    ```bash
+    sudo chmod 750 /var/lib/rancher/k3s/server
+    ```
+5. **If the issue persists, log out and log back in:**
+    ```bash
+    logout
+    ssh pi@raspberrypi
+    ```
 ## 📸 Example Output
 
 ```bash
@@ -37,6 +78,9 @@ Running Pods: 24
 ===== K3S NAMESPACES =====
 System Namespaces: default, kube-node-lease, kube-public, kube-system, metallb-system
 User Namespaces: kubernetes-dashboard, logos-dev, my-app-namespace, playground, test-docker-ci
+
+✔ K3s token exists and matches backup
+
 
 (This script is located at: /usr/local/bin/service-status.py)
 (Triggered by: /etc/profile.d/service-status.sh)
