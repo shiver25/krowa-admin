@@ -23,6 +23,7 @@
 
 
 import os
+os.system("")
 import shutil
 import subprocess
 
@@ -73,7 +74,7 @@ def check_k3s_token():
     
     # Sprawdzenie czy plik tokena w ogóle istnieje
     if not os.path.exists(TOKEN_PATH):
-        return "\033[1;31m✖ K3s token is MISSING! Possible issue after restart\033[0m"
+        return f"{COLORS['red']}✖ K3s token is MISSING! Possible issue after restart{COLORS['reset']}"
 
     try:
         with open(TOKEN_PATH, "r") as file:
@@ -81,7 +82,7 @@ def check_k3s_token():
         
         # Sprawdzenie czy token jest pusty lub za krótki
         if len(token_content) < 20:  # Normalny token ma ok. 50+ znaków
-            return "\033[1;33m⚠ K3s token is EMPTY or CORRUPTED! Check file content.\033[0m"
+            return f"{COLORS['yellow']}⚠ K3s token is EMPTY or CORRUPTED! Check file content.{COLORS['reset']}"
 
         # Sprawdzenie, czy mamy kopię zapasową
         if os.path.exists(BACKUP_PATH):
@@ -90,14 +91,14 @@ def check_k3s_token():
 
             # Porównanie obecnego tokena z backupem
             if token_content != backup_content:
-                return "\033[1;33m⚠ K3s token has CHANGED! This might be unexpected.\033[0m"
+                return f"{COLORS['yellow']}⚠ K3s token has CHANGED! This might be unexpected.{COLORS['reset']}"
         
         # Jeśli wszystko wygląda OK, aktualizujemy backup
         shutil.copy2(TOKEN_PATH, BACKUP_PATH)
-        return "\033[1;32m✔ K3s token exists and matches backup\033[0m"
+        return f"{COLORS['green']}✔ K3s token exists and matches backup{COLORS['reset']}"
 
     except Exception as e:
-        return f"\033[1;31m✖ Error reading K3s token: {str(e)}\033[0m"
+        return f"{COLORS['red']}✖ Error reading K3s token: {str(e)}{COLORS['reset']}"
 
 def check_service_status(service_name):
     """Sprawdza status usługi za pomocą systemctl"""
@@ -111,12 +112,12 @@ def get_k3s_status():
         pod_count = subprocess.check_output("kubectl get pods -A --no-headers | wc -l", shell=True, text=True).strip()
         report = "\n"
         report += print_section_title("K3s CLUSTER STATUS")
-        report += f"\033[1;32mNodes:\n{node_status}\nRunning Pods: {pod_count}\033[0m"
+        report += f"{COLORS['green']}Nodes:\n{node_status}\nRunning Pods: {pod_count}{COLORS['reset']}"
         return report
     except subprocess.CalledProcessError:
         report = "\n"
         report += print_section_title("K3s CLUSTER STATUS")  # Żółty nagłówek
-        report += "\n\033[1;33m⚠ K3s is running, but unable to fetch status.\033[0m"
+        report += f"\n{COLORS['yellow']}⚠ K3s is running, but unable to fetch status.{COLORS['reset']}"
         return report
 
 def get_namespace_report():
@@ -137,12 +138,12 @@ def get_namespace_report():
 
         report = "\n"
         report += print_section_title("K3s NAMESPACES")
-        report += f"\033[1;32mSystem Namespaces:\033[0m {', '.join(system_ns)}\n"
-        report += f"\033[1;33mUser Namespaces:\033[0m {', '.join(user_ns)}\n"
+        report += f"{COLORS['green']}System Namespaces:{COLORS['reset']} {', '.join(system_ns)}\n"
+        report += f"{COLORS['yellow']}User Namespaces:{COLORS['reset']} {', '.join(user_ns)}\n"
 
         return report
     except subprocess.CalledProcessError:
-        return "\n\033[1;33mUnable to fetch namespaces.\033[0m"
+        return f"\n{COLORS['yellow']}Unable to fetch namespaces.{COLORS['reset']}"
 
 def generate_status_report():
     """Generuje raport o statusie usług"""
@@ -150,7 +151,7 @@ def generate_status_report():
     report += print_section_header("KROWA ADMIN")
     report += print_section_title("SERVICE STATUS REPORT")
     for service in services:
-        status_str = "\033[1;32m✔ running\033[0m" if check_service_status(service) else "\033[1;31m✖ not running\033[0m"
+        status_str = f"{COLORS['green']}✔ running{COLORS['reset']}" if check_service_status(service) else f"{COLORS['red']}✖ not running{COLORS['reset']}"
         report += f"{service}: {status_str}\n"
 
     if check_service_status("k3s"):
@@ -158,8 +159,8 @@ def generate_status_report():
     
     report += "\n" + get_namespace_report()
     report += "\n" + check_k3s_token() + "\n"
-    report += "\n\n\033[1;36m(This script is located at: /usr/local/bin/service-status.py)\033[0m"
-    report += "\n\033[1;36m(Triggered by: /etc/profile.d/service-status.sh)\033[0m\n"
+    report += f"\n\n{COLORS['cyan']}(This script is located at: /usr/local/bin/service-status.py){COLORS['reset']}"
+    report += f"\n{COLORS['cyan']}(Triggered by: /etc/profile.d/service-status.sh){COLORS['reset']}\n"
     
     return report
 
