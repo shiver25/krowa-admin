@@ -102,7 +102,31 @@ User Namespaces: kubernetes-dashboard, logos-dev, my-app-namespace, playground, 
 🚀 GitHub: shiver25
 📜 License
 
-Projekt jest rozwijany i utrzymywany przez firmę **[LOGOS](https://logos.net.pl)**. 
-Oferujemy profesjonalne wsparcie, administrację serwerami Linux oraz optymalizację infrastruktury webowej.
+<table width="100%">
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Wersja Polska 🇵🇱</h3>
+      <p>Projekt jest rozwijany i utrzymywany przez firmę <strong><a href="https://logos.net.pl">LOGOS</a></strong>.</p>
+      <p>Na co dzień zajmuję się profesjonalną administracją serwerami Linux, wdrażaniem infrastruktury webowej (Docker, reverse proxy) oraz optymalizacją i zabezpieczaniem środowisk sieciowych.</p>
+      <ul>
+        <li>Potrzebujesz pomocy z konfiguracją serwera?</li>
+        <li>Twoja poczta trafia do spamu?</li>
+        <li>Szukasz wsparcia DevOps / Sysadmin?</li>
+      </ul>
+      <p>Odwiedź moją stronę i opisz problem: <strong><a href="https://logos.net.pl">logos.net.pl</a></strong></p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>English Version 🇬🇧</h3>
+      <p>This project is developed and maintained by <strong><a href="https://logos.net.pl/en">LOGOS</a></strong>.</p>
+      <p>I provide professional Linux server administration, web infrastructure deployment (Docker, reverse proxies), and server environment optimization/security.</p>
+      <ul>
+        <li>Need help with server configuration?</li>
+        <li>Is your business email hitting spam folders?</li>
+        <li>Looking for reliable DevOps / Sysadmin support?</li>
+      </ul>
+      <p>Visit my website and let's talk: <strong><a href="https://logos.net.pl/en">logos.net.pl/en</a></strong></p>
+    </td>
+  </tr>
+</table>
 
 MIT License – Free to use, modify, and share. 🎉
