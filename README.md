@@ -102,4 +102,7 @@ User Namespaces: kubernetes-dashboard, logos-dev, my-app-namespace, playground, 
 🚀 GitHub: shiver25
 📜 License
 
+Projekt jest rozwijany i utrzymywany przez firmę **[LOGOS](https://logos.net.pl)**. 
+Oferujemy profesjonalne wsparcie, administrację serwerami Linux oraz optymalizację infrastruktury webowej.
+
 MIT License – Free to use, modify, and share. 🎉
