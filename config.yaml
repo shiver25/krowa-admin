@@ -1,3 +1,6 @@
-services:
-  - docker
-  - ssh
+checks:
+  services:
+    enabled: true
+    items:
+      - docker
+      - ssh

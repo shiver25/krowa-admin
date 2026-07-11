@@ -34,7 +34,8 @@ def load_config(path="config.yaml"):
         return yaml.safe_load(config_file)
 
 config = load_config()
-services = config.get("services", [])
+services_config = config.get("checks", {}).get("services", {})
+
 
 TOKEN_PATH = "/var/lib/rancher/k3s/server/token"
 BACKUP_PATH = "/home/pi/k3s-token-backup/token.bak"
@@ -173,6 +174,12 @@ def generate_status_report():
 
 if __name__ == "__main__":
     create_k3s_token_backup()
+
+    if services_config.get("enabled", False):
+        services = services_config.get("items", [])
+    else:
+        services = []
+
     report = generate_status_report()
     print(report)
 
