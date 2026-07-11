@@ -26,9 +26,15 @@ import os
 os.system("")
 import shutil
 import subprocess
+import yaml
 
-# Lista usług do sprawdzenia
-services = ["docker", "ssh", "k3s"]
+
+def load_config(path="config.yaml"):
+    with open(path, "r", encoding="utf-8") as config_file:
+        return yaml.safe_load(config_file)
+
+config = load_config()
+services = config.get("services", [])
 
 TOKEN_PATH = "/var/lib/rancher/k3s/server/token"
 BACKUP_PATH = "/home/pi/k3s-token-backup/token.bak"
@@ -44,6 +50,7 @@ COLORS = {
     "cyan": "\033[1;36m",
     "white": "\033[1;37m",
 }
+
 
 def create_k3s_token_backup():
     """Tworzy backup tokena K3s z poprawnymi uprawnieniami"""
