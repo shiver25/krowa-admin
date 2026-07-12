@@ -29,13 +29,13 @@ import subprocess
 import yaml
 
 
-def load_config(path="config.yaml"):
+def load_config(path="/etc/krowa-admin/config.yaml"):
     with open(path, "r", encoding="utf-8") as config_file:
         return yaml.safe_load(config_file)
 
 config = load_config()
 services_config = config.get("checks", {}).get("services", {})
-
+docker_config = config.get("checks", {}).get("docker_containers", {})
 
 TOKEN_PATH = "/var/lib/rancher/k3s/server/token"
 BACKUP_PATH = "/home/pi/k3s-token-backup/token.bak"
@@ -153,6 +153,64 @@ def get_namespace_report():
     except subprocess.CalledProcessError:
         return f"\n{COLORS['yellow']}Unable to fetch namespaces.{COLORS['reset']}"
 
+
+def get_docker_container_report(docker_config):
+    """Sprawdza stan kontenerów wymienionych jako expected."""
+    report = print_section_title("DOCKER CONTAINERS")
+    expected = docker_config.get("expected", [])
+
+    try:
+        result = subprocess.run(
+            [
+                "docker",
+                "ps",
+                "-a",
+                "--format",
+                "{{.Names}}|{{.Status}}",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as error:
+        return (
+            report
+            + f"{COLORS['yellow']}Unable to check Docker: "
+            + f"{error}{COLORS['reset']}\n"
+        )
+
+    containers = {}
+
+    for line in result.stdout.splitlines():
+        name, status = line.split("|", 1)
+        containers[name] = status
+
+    for name in expected:
+        status = containers.get(name)
+
+        if status is None:
+            report += (
+                f"{COLORS['red']}✖ {name}: missing"
+                f"{COLORS['reset']}\n"
+            )
+        elif "(unhealthy)" in status:
+            report += (
+                f"{COLORS['yellow']}⚠ {name}: {status}"
+                f"{COLORS['reset']}\n"
+            )
+        elif status.startswith("Up"):
+            report += (
+                f"{COLORS['green']}✔ {name}: running"
+                f"{COLORS['reset']}\n"
+            )
+        else:
+            report += (
+                f"{COLORS['red']}✖ {name}: {status}"
+                f"{COLORS['reset']}\n"
+            )
+
+    return report
+
 def generate_status_report():
     """Generuje raport o statusie usług"""
     report = "\n"
@@ -161,6 +219,9 @@ def generate_status_report():
     for service in services:
         status_str = f"{COLORS['green']}✔ running{COLORS['reset']}" if check_service_status(service) else f"{COLORS['red']}✖ not running{COLORS['reset']}"
         report += f"{service}: {status_str}\n"
+
+    if docker_config.get("enabled", False):
+      report += get_docker_container_report(docker_config)
 
     if check_service_status("k3s"):
         report += get_k3s_status()
