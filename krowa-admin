@@ -1,5 +1,0 @@
-#!/bin/sh
-
-#/usr/local/bin/krowa-admin
-exec /usr/bin/python3 /usr/local/lib/krowa-admin/service-status.py "$@"
-
