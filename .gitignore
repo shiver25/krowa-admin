@@ -1,0 +1,6 @@
+__pycache__/
+USTALENIA.md
+*.py[cod]
+dist/
+codex.txt
+config.yaml

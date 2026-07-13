@@ -1,3 +1,9 @@
-#!/bin/bash
-[[ $- != *i* ]] && return
-/usr/local/bin/service-status.py
+#!/bin/sh
+
+case "$-" in
+    *i*)
+        if [ -x /usr/bin/krowa-admin ]; then
+            /usr/bin/krowa-admin || true
+        fi
+        ;;
+esac

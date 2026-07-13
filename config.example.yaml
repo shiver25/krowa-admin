@@ -1,0 +1,25 @@
+checks:
+  services:
+    enabled: false
+    items:
+      - docker
+      - ssh
+  docker_containers:
+    enabled: false
+    expected:
+      - example-frontend
+      - example-backend
+  k3s:
+    enabled: false
+    token:
+      enabled: false
+      path: /var/lib/rancher/k3s/server/token
+      backup_path: /var/backups/krowa-admin/k3s-token.bak
+    namespaces:
+      enabled: true
+      system:
+        - default
+        - kube-system
+        - kube-public
+        - kube-node-lease
+        - metallb-system
