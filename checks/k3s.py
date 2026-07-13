@@ -66,19 +66,67 @@ def check_k3s_token(token_config):
 
 
 def get_k3s_status():
-    """Pobiera status klastra K3s, jeśli działa"""
+    """Pobiera status klastra K3s."""
+    report = "\n"
+    report += print_section_title("K3s CLUSTER STATUS")
+
     try:
-        node_status = subprocess.check_output("kubectl get nodes --no-headers", shell=True, text=True).strip()
-        pod_count = subprocess.check_output("kubectl get pods -A --no-headers | wc -l", shell=True, text=True).strip()
-        report = "\n"
-        report += print_section_title("K3s CLUSTER STATUS")
-        report += f"{COLORS['green']}Nodes:\n{node_status}\nRunning Pods: {pod_count}{COLORS['reset']}"
-        return report
-    except subprocess.CalledProcessError:
-        report = "\n"
-        report += print_section_title("K3s CLUSTER STATUS")  # Żółty nagłówek
-        report += f"\n{COLORS['yellow']}⚠ K3s is running, but unable to fetch status.{COLORS['reset']}"
-        return report
+        node_status = subprocess.check_output(
+            [
+                "kubectl",
+                "get",
+                "nodes",
+                "--no-headers",
+            ],
+            text=True,
+            timeout=5,
+        ).strip()
+
+        pod_output = subprocess.check_output(
+            [
+                "kubectl",
+                "get",
+                "pods",
+                "-A",
+                "--field-selector=status.phase=Running",
+                "--no-headers",
+            ],
+            text=True,
+            timeout=5,
+        ).strip()
+
+        pod_count = len(pod_output.splitlines()) if pod_output else 0
+
+        report += (
+            f"{COLORS['green']}Nodes:\n"
+            f"{node_status}\n"
+            f"Running Pods: {pod_count}"
+            f"{COLORS['reset']}"
+        )
+
+    except FileNotFoundError:
+        report += (
+            f"{COLORS['yellow']}"
+            f"kubectl command was not found."
+            f"{COLORS['reset']}"
+        )
+
+    except subprocess.TimeoutExpired:
+        report += (
+            f"{COLORS['yellow']}"
+            f"Timed out while fetching K3s status."
+            f"{COLORS['reset']}"
+        )
+
+    except subprocess.CalledProcessError as error:
+        report += (
+            f"{COLORS['yellow']}"
+            f"Unable to fetch K3s status: {error}"
+            f"{COLORS['reset']}"
+        )
+
+    return report
+
 
 
 def get_namespace_report(namespaces_config):
