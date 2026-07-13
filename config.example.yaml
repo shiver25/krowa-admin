@@ -7,10 +7,8 @@ checks:
   docker_containers:
     enabled: true
     expected:
-      - logos-frontend-main
-      - logos-backend-main
-      - logos-frontend-dev
-      - logos-backend-dev
+      - example-frontend
+      - example-backend
   k3s:
     enabled: false
     token:
