@@ -150,7 +150,7 @@ def get_k3s_status():
         report += f"\n{COLORS['yellow']}⚠ K3s is running, but unable to fetch status.{COLORS['reset']}"
         return report
 
-def get_namespace_report():
+def get_namespace_report(namespaces_config):
     """Pobiera listę namespace’ów i rozdziela je na systemowe oraz użytkownika"""
     try:
         namespaces = subprocess.check_output("kubectl get namespaces --no-headers", shell=True, text=True).strip().split("\n")
