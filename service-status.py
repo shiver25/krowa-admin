@@ -36,9 +36,8 @@ def load_config(path="/etc/krowa-admin/config.yaml"):
 config = load_config()
 services_config = config.get("checks", {}).get("services", {})
 docker_config = config.get("checks", {}).get("docker_containers", {})
+k3s_config = config.get("checks", {}).get("k3s", {})
 
-TOKEN_PATH = "/var/lib/rancher/k3s/server/token"
-BACKUP_PATH = "/home/pi/k3s-token-backup/token.bak"
 
 # ANSI Escape Codes - Colors
 COLORS = {
@@ -52,12 +51,6 @@ COLORS = {
     "white": "\033[1;37m",
 }
 
-
-def create_k3s_token_backup():
-    """Tworzy backup tokena K3s z poprawnymi uprawnieniami"""
-    if os.path.exists(TOKEN_PATH):
-        shutil.copy2(TOKEN_PATH, BACKUP_PATH)
-        os.chmod(BACKUP_PATH, 0o640)  # Prawa dostępu jak w tokenie
 
 def print_section_header(title):
     """Generuje nagłówek sekcji w raporcie"""
@@ -77,36 +70,65 @@ def print_section_title(title):
     return f"\n{COLORS['cyan']}{'=' * padding}{title}{'=' * (padding + extra_padding)}{COLORS['reset']}\n"
 
 
-def check_k3s_token():
-    """Sprawdza, czy plik tokena K3s istnieje, jest poprawny i czy nie zmienił się względem backupu"""
-    
-    # Sprawdzenie czy plik tokena w ogóle istnieje
-    if not os.path.exists(TOKEN_PATH):
-        return f"{COLORS['red']}✖ K3s token is MISSING! Possible issue after restart{COLORS['reset']}"
+def check_k3s_token(token_config):
+    """Sprawdza token K3s i tworzy pierwszy backup."""
+    token_path = token_config.get(
+        "path",
+        "/var/lib/rancher/k3s/server/token",
+    )
+    backup_path = token_config.get(
+        "backup_path",
+        "/var/backups/krowa-admin/k3s-token.bak",
+    )
+
+    if not os.path.exists(token_path):
+        return (
+            f"{COLORS['red']}✖ K3s token is missing"
+            f"{COLORS['reset']}\n"
+        )
 
     try:
-        with open(TOKEN_PATH, "r") as file:
-            token_content = file.read().strip()
-        
-        # Sprawdzenie czy token jest pusty lub za krótki
-        if len(token_content) < 20:  # Normalny token ma ok. 50+ znaków
-            return f"{COLORS['yellow']}⚠ K3s token is EMPTY or CORRUPTED! Check file content.{COLORS['reset']}"
+        with open(token_path, "r", encoding="utf-8") as token_file:
+            token_content = token_file.read().strip()
 
-        # Sprawdzenie, czy mamy kopię zapasową
-        if os.path.exists(BACKUP_PATH):
-            with open(BACKUP_PATH, "r") as backup_file:
-                backup_content = backup_file.read().strip()
+        if len(token_content) < 20:
+            return (
+                f"{COLORS['yellow']}⚠ K3s token is empty or corrupted"
+                f"{COLORS['reset']}\n"
+            )
 
-            # Porównanie obecnego tokena z backupem
-            if token_content != backup_content:
-                return f"{COLORS['yellow']}⚠ K3s token has CHANGED! This might be unexpected.{COLORS['reset']}"
-        
-        # Jeśli wszystko wygląda OK, aktualizujemy backup
-        shutil.copy2(TOKEN_PATH, BACKUP_PATH)
-        return f"{COLORS['green']}✔ K3s token exists and matches backup{COLORS['reset']}"
+        if not os.path.exists(backup_path):
+            backup_directory = os.path.dirname(backup_path)
+            os.makedirs(backup_directory, exist_ok=True)
 
-    except Exception as e:
-        return f"{COLORS['red']}✖ Error reading K3s token: {str(e)}{COLORS['reset']}"
+            shutil.copy2(token_path, backup_path)
+            os.chmod(backup_path, 0o640)
+
+            return (
+                f"{COLORS['green']}✔ K3s token backup created"
+                f"{COLORS['reset']}\n"
+            )
+
+        with open(backup_path, "r", encoding="utf-8") as backup_file:
+            backup_content = backup_file.read().strip()
+
+        if token_content != backup_content:
+            return (
+                f"{COLORS['yellow']}⚠ K3s token has changed; "
+                f"backup was not overwritten{COLORS['reset']}\n"
+            )
+
+        return (
+            f"{COLORS['green']}✔ K3s token matches backup"
+            f"{COLORS['reset']}\n"
+        )
+
+    except (OSError, PermissionError) as error:
+        return (
+            f"{COLORS['red']}✖ Unable to check K3s token: "
+            f"{error}{COLORS['reset']}\n"
+        )
+
 
 def check_service_status(service_name):
     """Sprawdza status usługi za pomocą systemctl"""
@@ -223,18 +245,29 @@ def generate_status_report():
     if docker_config.get("enabled", False):
       report += get_docker_container_report(docker_config)
 
-    if check_service_status("k3s"):
+    if k3s_config.get("enabled", False):
+      if check_service_status("k3s"):
         report += get_k3s_status()
-    
-    report += "\n" + get_namespace_report()
-    report += "\n" + check_k3s_token() + "\n"
+
+        namespaces_config = k3s_config.get("namespaces", {})
+        if namespaces_config.get("enabled", False):
+            report += get_namespace_report(namespaces_config)
+      else:
+          report += (
+            f"{COLORS['red']}✖ K3s is not running"
+            f"{COLORS['reset']}\n"
+          )
+
+      token_config = k3s_config.get("token", {})
+      if token_config.get("enabled", False):
+          report += check_k3s_token(token_config)
+
     report += f"\n\n{COLORS['cyan']}(This script is located at: /usr/local/bin/service-status.py){COLORS['reset']}"
     report += f"\n{COLORS['cyan']}(Triggered by: /etc/profile.d/service-status.sh){COLORS['reset']}\n"
     
     return report
 
 if __name__ == "__main__":
-    create_k3s_token_backup()
 
     if services_config.get("enabled", False):
         services = services_config.get("items", [])
