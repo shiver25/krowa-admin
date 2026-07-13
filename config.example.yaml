@@ -1,11 +1,11 @@
 checks:
   services:
-    enabled: true
+    enabled: false
     items:
       - docker
       - ssh
   docker_containers:
-    enabled: true
+    enabled: false
     expected:
       - example-frontend
       - example-backend

@@ -82,7 +82,7 @@ def generate_status_report():
       f"{COLORS['reset']}"
     )
 
-    report += f"\n{COLORS['cyan']}(Triggered by: /etc/profile.d/service-status.sh){COLORS['reset']}\n"
+    report += f"\n{COLORS['cyan']}(Triggered by: /etc/profile.d/krowa-admin.sh){COLORS['reset']}\n"
     
     return report
 

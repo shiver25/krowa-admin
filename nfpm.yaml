@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
+
+name: krowa-admin
+arch: all
+platform: linux
+version: ${VERSION}
+release: 1
+
+section: admin
+priority: optional
+
+maintainer: "Grzegorz <biuro@logos.net.pl>"
+vendor: "Logos"
+homepage: "https://github.com/shiver25/krowa-admin"
+license: MIT
+
+description: |
+  Configurable server status report.
+  Displays configurable information about the current server state.
+
+contents:
+  - src: service-status.py
+    dst: /usr/lib/krowa-admin/service-status.py
+    file_info:
+      mode: 0644
+
+  - src: formatting.py
+    dst: /usr/lib/krowa-admin/formatting.py
+    file_info:
+      mode: 0644
+
+  - src: checks/*.py
+    dst: /usr/lib/krowa-admin/checks/
+    file_info:
+      mode: 0644
+
+  - src: packaging/krowa-admin
+    dst: /usr/bin/krowa-admin
+    file_info:
+      mode: 0755
+
+  - src: service-status.sh
+    dst: /etc/profile.d/krowa-admin.sh
+    file_info:
+      mode: 0644
+
+  - src: config.example.yaml
+    dst: /etc/krowa-admin/config.yaml
+    type: config|noreplace
+    file_info:
+      mode: 0644
+
+overrides:
+  deb:
+    depends:
+      - python3
+      - python3-yaml
+
+  rpm:
+    depends:
+      - python3
+      - python3-pyyaml
