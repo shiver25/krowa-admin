@@ -54,7 +54,7 @@ git diff --check
 Build both package formats:
 
 ```bash
-VERSION=0.2.0 ./build_and_test/build_in_docker.sh
+VERSION=1.2.3 ./build_and_test/build_in_docker.sh
 ```
 
 Test installation and execution in clean containers:

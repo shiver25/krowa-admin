@@ -29,13 +29,13 @@ Download the package for your distribution from the GitHub release.
 Raspberry Pi OS, Debian, and related distributions:
 
 ```bash
-sudo apt-get install ./krowa-admin_0.2.0-1_all.deb
+sudo apt-get install ./krowa-admin_*_all.deb
 ```
 
 Fedora and related RPM-based distributions:
 
 ```bash
-sudo dnf install ./krowa-admin-0.2.0-1.noarch.rpm
+sudo dnf install ./krowa-admin-*.noarch.rpm
 ```
 
 The packages install Python and PyYAML through distribution dependencies.
@@ -165,7 +165,7 @@ image and creates both formats in `dist/`:
 Set another package version with an environment variable:
 
 ```bash
-VERSION=0.2.1 ./build_and_test/build_in_docker.sh
+VERSION=1.2.3 ./build_and_test/build_in_docker.sh
 ```
 
 The scripts can be called from any working directory.
