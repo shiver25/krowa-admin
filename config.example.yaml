@@ -4,6 +4,25 @@ checks:
     items:
       - docker
       - ssh
+  system_resources:
+    enabled: false
+
+    uptime:
+      enabled: true
+
+    load:
+      enabled: true
+
+    memory:
+      enabled: true
+
+    disk:
+      enabled: true
+      warning_percent: 80
+      critical_percent: 90
+      paths:
+        - /
+
   docker_containers:
     enabled: false
     expected:

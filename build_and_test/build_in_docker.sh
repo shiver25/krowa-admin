@@ -13,7 +13,7 @@ PROJECT_ROOT="$(
 )"
 
 DIST_DIR="$PROJECT_ROOT/dist"
-VERSION="${VERSION:-0.2.0}"
+: "${VERSION:?Set VERSION, for example: VERSION=1.2.3 ./build_and_test/build_in_docker.sh}"
 
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"

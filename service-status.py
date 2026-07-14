@@ -10,6 +10,12 @@ from pathlib import Path
 from checks.docker import get_docker_container_report
 from checks.k3s import check_k3s_token, get_k3s_status, get_namespace_report
 from checks.services import check_service_status
+from checks.system_resources import (
+    get_disk_report,
+    get_load_report,
+    get_memory_report,
+    get_uptime_report,
+)
 from formatting import COLORS, print_section_title, print_section_header
 
 
@@ -44,17 +50,61 @@ config = load_config()
 services_config = config.get("checks", {}).get("services", {})
 docker_config = config.get("checks", {}).get("docker_containers", {})
 k3s_config = config.get("checks", {}).get("k3s", {})
-
+system_resources_config = (
+    config.get("checks", {})
+    .get("system_resources", {})
+)
 
 
 def generate_status_report():
     """Generuje raport o statusie usług"""
     report = "\n"
     report += print_section_header("KROWA ADMIN")
-    report += print_section_title("SERVICE STATUS REPORT")
-    for service in services:
-        status_str = f"{COLORS['green']}✔ running{COLORS['reset']}" if check_service_status(service) else f"{COLORS['red']}✖ not running{COLORS['reset']}"
-        report += f"{service}: {status_str}\n"
+
+    if system_resources_config.get("enabled", False):
+        system_reports = []
+        uptime_config = system_resources_config.get("uptime", {})
+
+        if uptime_config.get("enabled", False):
+            system_reports.append(
+                get_uptime_report().rstrip()
+            )
+
+        load_settings = system_resources_config.get("load", {})
+
+        if load_settings.get("enabled", False):
+            system_reports.append(
+                get_load_report().rstrip()
+            )
+
+        memory_settings = system_resources_config.get("memory", {})
+
+        if memory_settings.get("enabled", False):
+            system_reports.append(
+                get_memory_report().rstrip()
+            )
+
+        disk_settings = system_resources_config.get(
+            "disk",
+            {},
+        )
+
+        if disk_settings.get("enabled", False):
+            system_reports.append(
+                get_disk_report(disk_settings).rstrip()
+            )
+
+
+        if system_reports:
+            report += print_section_title("SYSTEM")
+            report += "\n\n".join(system_reports)
+            report += "\n"
+
+    if services:
+        report += print_section_title("SERVICES")
+        for service in services:
+            status_str = f"{COLORS['green']}✔ running{COLORS['reset']}" if check_service_status(service) else f"{COLORS['red']}✖ not running{COLORS['reset']}"
+            report += f"{service}: {status_str}\n"
 
     if docker_config.get("enabled", False):
       report += get_docker_container_report(docker_config)
@@ -95,4 +145,3 @@ if __name__ == "__main__":
 
     report = generate_status_report()
     print(report)
-
