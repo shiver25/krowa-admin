@@ -12,6 +12,7 @@ shells.
 ## Features
 
 - Configurable systemd service checks.
+- Optional uptime, load average, memory, swap, and disk usage reports.
 - Expected Docker container checks, including missing, stopped, and unhealthy
   containers.
 - Optional K3s node, running pod, and namespace reports.
@@ -53,6 +54,26 @@ Example:
 
 ```yaml
 checks:
+  system_resources:
+    enabled: true
+
+    uptime:
+      enabled: true
+
+    load:
+      enabled: true
+
+    memory:
+      enabled: true
+
+    disk:
+      enabled: true
+      warning_percent: 80
+      critical_percent: 90
+      paths:
+        - /
+        - /home
+
   services:
     enabled: true
     items:
@@ -86,6 +107,12 @@ checks:
 The `services` section provides a general systemd status list. Specialized
 sections provide additional diagnostics. For example, `k3s` may be listed in
 `services` while `checks.k3s.enabled` controls the detailed cluster checks.
+
+The `system_resources` section can display uptime, load averages normalized by
+the number of CPUs, memory and active swap usage, and disk usage for configured
+paths. Disk usage is yellow at `warning_percent` and red at
+`critical_percent`. If multiple paths are located on the same filesystem, they
+may report the same capacity and usage values.
 
 The package treats `/etc/krowa-admin/config.yaml` as a configuration file, so
 local changes are preserved during upgrades.
