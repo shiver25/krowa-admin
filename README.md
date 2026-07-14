@@ -12,6 +12,7 @@ shells.
 ## Features
 
 - Configurable systemd service checks.
+- Optional uptime, load average, memory, swap, and disk usage reports.
 - Expected Docker container checks, including missing, stopped, and unhealthy
   containers.
 - Optional K3s node, running pod, and namespace reports.
@@ -28,13 +29,13 @@ Download the package for your distribution from the GitHub release.
 Raspberry Pi OS, Debian, and related distributions:
 
 ```bash
-sudo apt-get install ./krowa-admin_0.2.0-1_all.deb
+sudo apt-get install ./krowa-admin_*_all.deb
 ```
 
 Fedora and related RPM-based distributions:
 
 ```bash
-sudo dnf install ./krowa-admin-0.2.0-1.noarch.rpm
+sudo dnf install ./krowa-admin-*.noarch.rpm
 ```
 
 The packages install Python and PyYAML through distribution dependencies.
@@ -53,6 +54,26 @@ Example:
 
 ```yaml
 checks:
+  system_resources:
+    enabled: true
+
+    uptime:
+      enabled: true
+
+    load:
+      enabled: true
+
+    memory:
+      enabled: true
+
+    disk:
+      enabled: true
+      warning_percent: 80
+      critical_percent: 90
+      paths:
+        - /
+        - /home
+
   services:
     enabled: true
     items:
@@ -86,6 +107,12 @@ checks:
 The `services` section provides a general systemd status list. Specialized
 sections provide additional diagnostics. For example, `k3s` may be listed in
 `services` while `checks.k3s.enabled` controls the detailed cluster checks.
+
+The `system_resources` section can display uptime, load averages normalized by
+the number of CPUs, memory and active swap usage, and disk usage for configured
+paths. Disk usage is yellow at `warning_percent` and red at
+`critical_percent`. If multiple paths are located on the same filesystem, they
+may report the same capacity and usage values.
 
 The package treats `/etc/krowa-admin/config.yaml` as a configuration file, so
 local changes are preserved during upgrades.
@@ -138,7 +165,7 @@ image and creates both formats in `dist/`:
 Set another package version with an environment variable:
 
 ```bash
-VERSION=0.2.1 ./build_and_test/build_in_docker.sh
+VERSION=1.2.3 ./build_and_test/build_in_docker.sh
 ```
 
 The scripts can be called from any working directory.
