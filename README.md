@@ -125,10 +125,10 @@ Run a fresh report manually:
 krowa-admin
 ```
 
-The package installs `/etc/profile.d/krowa-admin.sh`, which runs the same
-command for interactive login shells. To disable the automatic login report
-without disabling the command itself, remove or locally disable that profile
-script.
+The package installs `/etc/profile.d/krowa-admin.sh`, which runs
+`krowa-admin --summary` for interactive shells. Run `krowa-admin` manually to
+display the full report. To disable the automatic login report without
+disabling the command itself, remove or locally disable that profile script.
 
 Installed files:
 
