@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import argparse
 import os
 os.system("")
 import shutil
@@ -21,6 +22,31 @@ from formatting import COLORS, print_section_title, print_section_header
 
 SCRIPT_PATH = Path(__file__).resolve()
 
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    modes = parser.add_mutually_exclusive_group()
+
+    modes.add_argument(
+        "--summary",
+        action="store_const",
+        const="summary",
+        dest="mode",
+        help="Show compact result and problem details",
+    )
+
+    modes.add_argument(
+        "--only-problems",
+        action="store_const",
+        const="problems",
+        dest="mode",
+        help="Show only warnings and errors",
+    )
+
+    parser.set_defaults(mode="full")
+
+    return parser.parse_args()
 
 def load_config(path="/etc/krowa-admin/config.yaml"):
     try:
@@ -56,7 +82,7 @@ system_resources_config = (
 )
 
 
-def generate_status_report():
+def generate_status_report(mode="full"):
     """Generuje raport o statusie usług"""
     report = "\n"
     report += print_section_header("KROWA ADMIN")
@@ -107,7 +133,10 @@ def generate_status_report():
             report += f"{service}: {status_str}\n"
 
     if docker_config.get("enabled", False):
-      report += get_docker_container_report(docker_config)
+      report += get_docker_container_report(
+          docker_config,
+          mode=mode,
+      )
 
     if k3s_config.get("enabled", False):
       if check_service_status("k3s"):
@@ -137,11 +166,12 @@ def generate_status_report():
     return report
 
 if __name__ == "__main__":
+    args = parse_args()
 
     if services_config.get("enabled", False):
         services = services_config.get("items", [])
     else:
         services = []
 
-    report = generate_status_report()
+    report = generate_status_report(mode=args.mode)
     print(report)
