@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from checks.documentation import load_documentation_entries
 
@@ -78,6 +79,32 @@ class DocumentationParserTests(unittest.TestCase):
                 load_documentation_entries(config),
                 [("Overview", str(document))],
             )
+
+    def test_inaccessible_path_does_not_hide_valid_entries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = root / "README.md"
+            inaccessible = Path("/restricted/documentation.md")
+            config = root / "docs.conf"
+            config.write_text(
+                f"Overview | {document}\nRestricted | {inaccessible}\n",
+                encoding="utf-8",
+            )
+
+            def check_file(path):
+                if path == inaccessible:
+                    raise PermissionError("permission denied")
+                return path == document
+
+            with patch(
+                "checks.documentation.Path.is_file",
+                autospec=True,
+                side_effect=check_file,
+            ):
+                self.assertEqual(
+                    load_documentation_entries(config),
+                    [("Overview", str(document))],
+                )
 
 
 if __name__ == "__main__":
