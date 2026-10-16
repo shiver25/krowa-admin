@@ -20,6 +20,7 @@ docker run --rm \
 
         test -x /usr/bin/krowa-admin
         test -f /etc/krowa-admin/config.yaml
+        test -f /etc/krowa-admin/docs.conf
 
         python3 -m compileall -q /usr/lib/krowa-admin \
             /usr/lib/krowa-admin/service-status.py \
