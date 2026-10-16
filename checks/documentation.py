@@ -29,12 +29,18 @@ def load_documentation_entries(path=DEFAULT_DOCUMENTATION_CONFIG):
                     continue
 
                 target = Path(documentation_path)
-                if not target.is_absolute() or not target.is_file():
+                if not target.is_absolute():
+                    continue
+
+                try:
+                    if not target.is_file():
+                        continue
+                except OSError:
                     continue
 
                 entries.append((name, str(target)))
     except (OSError, UnicodeError):
-        return []
+        return entries
 
     return entries
 
