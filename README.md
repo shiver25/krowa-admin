@@ -17,6 +17,7 @@ shells.
   containers.
 - Optional K3s node, running pod, and namespace reports.
 - Optional K3s token validation against a local backup.
+- Optional links to existing local administration documentation.
 - Colored terminal output.
 - Native DEB and RPM packages generated from one nFPM configuration.
 
@@ -117,6 +118,28 @@ may report the same capacity and usage values.
 The package treats `/etc/krowa-admin/config.yaml` as a configuration file, so
 local changes are preserved during upgrades.
 
+### Local Documentation
+
+Local documentation links are configured separately in:
+
+```text
+/etc/krowa-admin/docs.conf
+```
+
+Add one entry per line using `Name | /absolute/path`:
+
+```ini
+# Local administration documentation
+System overview | /srv/docs/system.md
+Firewall | /etc/nftables.conf
+```
+
+Blank lines, comments beginning with `#`, malformed entries, and paths to
+files that do not exist are ignored. Krowa Admin only checks whether each file
+exists; it does not read the referenced documentation. The `DOCUMENTATION`
+section is omitted when no valid entries remain. Package upgrades preserve
+the local `docs.conf`.
+
 ## Usage
 
 Run a fresh report manually:
@@ -136,6 +159,7 @@ Installed files:
 /usr/bin/krowa-admin
 /usr/lib/krowa-admin/
 /etc/krowa-admin/config.yaml
+/etc/krowa-admin/docs.conf
 /etc/profile.d/krowa-admin.sh
 ```
 

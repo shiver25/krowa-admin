@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import yaml
 from pathlib import Path
+from checks.documentation import get_documentation_report
 from checks.docker import get_docker_container_report
 from checks.k3s import check_k3s_token, get_k3s_status, get_namespace_report
 from checks.services import check_service_status
@@ -154,6 +155,8 @@ def generate_status_report(mode="full"):
       token_config = k3s_config.get("token", {})
       if token_config.get("enabled", False):
           report += check_k3s_token(token_config)
+
+    report += get_documentation_report()
 
     report += (
       f"\n{COLORS['cyan']}"
